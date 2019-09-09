@@ -18,7 +18,10 @@ class Card:
         return 'Card()'
 
     def play(self, player, game):
-        pass
+        player.get_hand().remove_card(player.get_hand().get_cards().index(self))
+        player.get_hand().add_cards(game.pick_card())
+        game.set_action('NO_ACTION')
+        game.next_player()
 
     def action(self, player, game, slot):
         pass
@@ -48,6 +51,10 @@ class CoderCard(Card):
     def __repr__(self):
         return 'CoderCard(' + self.__name + ')'
 
+    def play(self, player, game):
+        game.set_action('NO_ACTION')
+        game.next_player()
+
     def get_name(self):
         return self.__name
 
@@ -62,6 +69,19 @@ class TutorCard(Card):
     def __repr__(self):
         return 'TutorCard(' + self.__name + ')'
 
+    def play(self, player, game):
+        player_deck = player.get_hand()
+        player_deck.remove_card(player_deck.get_cards().index(self))
+        player_deck.add_card(game.pick_card()[0])
+        game.set_action('PICKUP_CODER')
+
+    def action(self, player, game, slot):
+        selected_card = game.get_sleeping_coder(slot)
+        player.get_coders().add_card(selected_card)
+        game.set_sleeping_coder(game.get_sleeping_coders().index(selected_card), None)
+        game.set_action('NO_ACTION')
+        game.next_player()
+
     def get_name(self):
         return self.__name
 
@@ -73,6 +93,19 @@ class KeyboardKidnapperCard(Card):
     def __repr__(self):
         return 'KeyboardKidnapperCard()'
 
+    def play(self, player, game):
+        player_deck = player.get_hand()
+        player_deck.remove_card(player_deck.get_cards().index(self))
+        player_deck.add_card(game.pick_card()[0])
+        game.set_action('STEAL_CODER')
+
+    def action(self, player, game, slot):
+        selected_card = player.get_coders().get_card(slot)
+        player.get_coders().remove_card(slot)
+        game.current_player().get_coders().add_card(selected_card)
+        game.set_action('NO_ACTION')
+        game.next_player()
+
 
 class AllNighterCard(Card):
     def __str__(self):
@@ -80,6 +113,22 @@ class AllNighterCard(Card):
 
     def __repr__(self):
         return 'AllNighterCard()'
+
+    def play(self, player, game):
+        player_deck = player.get_hand()
+        player_deck.remove_card(player_deck.get_cards().index(self))
+        player_deck.add_card(game.pick_card()[0])
+        game.set_action('SLEEP_CODER')
+
+    def action(self, player, game, slot):
+        selected_card = player.get_coders().get_card(slot)
+        player.get_coders().remove_card(slot)
+        for i, card in enumerate(game.get_sleeping_coders()):
+            if card is None:
+                game.set_sleeping_coder(i, selected_card)
+                break
+        game.set_action('NO_ACTION')
+        game.next_player()
 
 
 class Deck:
@@ -96,7 +145,7 @@ class Deck:
         return 'Deck(' + ', '.join([i.__str__() for i in self.__cards]) + ')'
 
     def get_cards(self):
-        return [i for i in self.__cards]
+        return self.__cards
 
     def get_card(self, slot):
         return self.__cards[slot]
