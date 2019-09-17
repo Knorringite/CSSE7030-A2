@@ -21,7 +21,6 @@ class Card:
         player.get_hand().remove_card(player.get_hand().get_cards().index(self))
         player.get_hand().add_cards(game.pick_card())
         game.set_action('NO_ACTION')
-        game.next_player()
 
     def action(self, player, game, slot):
         pass
@@ -36,6 +35,12 @@ class NumberCard(Card):
 
     def __repr__(self):
         return 'NumberCard(' + str(self.__number) + ')'
+
+    def play(self, player, game):
+        player.get_hand().remove_card(player.get_hand().get_cards().index(self))
+        player.get_hand().add_cards(game.pick_card())
+        game.set_action('NO_ACTION')
+        game.next_player()
 
     def get_number(self):
         return self.__number
@@ -53,7 +58,6 @@ class CoderCard(Card):
 
     def play(self, player, game):
         game.set_action('NO_ACTION')
-        game.next_player()
 
     def get_name(self):
         return self.__name
